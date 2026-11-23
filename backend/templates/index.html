@@ -1,0 +1,567 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroDetect | Parkinson's Research Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#070b1b; --surface:#101832; --surface2:#151f42; --ink:#f4f6ff;
+      --muted:#a8b4d6; --line:rgba(126,151,255,.28); --cyan:#42d9ff;
+      --blue:#4b83ff; --violet:#a46bff; --pink:#df72ff; --green:#39e6a5;
+      --red:#ff8299; --shadow:0 18px 55px rgba(0,0,0,.34);
+    }
+    [data-theme="light"] {
+      color-scheme:light;
+      --bg:#f3f5ff; --surface:#fff; --surface2:#eef1ff; --ink:#18213f;
+      --muted:#667293; --line:rgba(91,111,196,.22); --cyan:#087fa9;
+      --blue:#4267e8; --violet:#8050d7; --pink:#a64bc9; --green:#07895f;
+      --red:#c34262; --shadow:0 16px 45px rgba(56,70,130,.11);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:
+      radial-gradient(ellipse at 76% 5%,rgba(105,62,222,.22),transparent 34%),
+      radial-gradient(ellipse at 10% 28%,rgba(24,125,255,.12),transparent 30%),var(--bg);
+      color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif;min-height:100vh}
+    header{height:76px;padding:0 clamp(18px,3.5vw,56px);display:flex;align-items:center;justify-content:space-between;gap:20px;
+      border-bottom:1px solid var(--line);background:rgba(8,13,34,.78);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}
+    [data-theme="light"] header{background:rgba(255,255,255,.82)}
+    .brand{display:flex;align-items:center;gap:13px;min-width:220px}
+    .brand-mark{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;color:#fff;font-size:23px;font-weight:900;
+      background:linear-gradient(135deg,#21cfff,#536bff 55%,#a45cff);box-shadow:0 0 24px rgba(76,128,255,.45)}
+    .brand h1{margin:0;font-size:20px;letter-spacing:1.2px;font-weight:850}
+    .brand p{margin:3px 0 0;color:var(--muted);font-size:11px;letter-spacing:.3px}
+    nav{display:flex;align-items:center;gap:8px}
+    nav a{color:var(--muted);text-decoration:none;font-size:13px;padding:11px 14px;border-radius:12px}
+    nav a:first-child{color:var(--ink);background:linear-gradient(110deg,rgba(67,117,255,.27),rgba(155,91,255,.22));border:1px solid rgba(131,145,255,.4)}
+    .header-actions{display:flex;align-items:center;gap:14px}
+    .status{color:var(--green);font-size:11px;font-weight:800;letter-spacing:.7px;white-space:nowrap}
+    .theme-toggle{display:flex;gap:3px;padding:4px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+    .theme-toggle button{border:0;border-radius:99px;padding:8px 12px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer}
+    .theme-toggle button.active{background:linear-gradient(120deg,#416dff,#864eff);color:white;box-shadow:0 3px 14px rgba(91,91,255,.35)}
+    main{max-width:1540px;margin:auto;padding:30px clamp(18px,3vw,42px) 24px}
+    .hero{position:relative;min-height:265px;display:flex;align-items:center;overflow:hidden;padding:32px clamp(22px,3vw,42px);border:1px solid var(--line);border-radius:24px;
+      background:linear-gradient(105deg,rgba(12,24,57,.97) 0%,rgba(20,25,70,.91) 52%,rgba(48,27,94,.78) 100%);
+      box-shadow:var(--shadow)}
+    [data-theme="light"] .hero{background:linear-gradient(110deg,#eaf4ff,#f0edff 65%,#f8edff)}
+    .hero-copy{position:relative;z-index:2;max-width:760px}
+    .eyebrow{font-size:11px;letter-spacing:4px;text-transform:uppercase;font-weight:850;color:#80dfff}
+    .eyebrow span{color:#d58cff}
+    .hero h2{font-size:clamp(31px,4vw,51px);line-height:1.08;letter-spacing:-1.7px;margin:16px 0 12px;max-width:740px}
+    .hero h2 .gradient{background:linear-gradient(90deg,#53dfff,#8b8cff 52%,#d28aff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero p{color:var(--muted);font-size:14px;line-height:1.65;max-width:690px;margin:0}
+    .hero-actions{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+    .hero-actions a{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:white;padding:12px 19px;border-radius:12px;font-size:13px;font-weight:750;
+      background:linear-gradient(110deg,#347dff,#754cff);box-shadow:0 0 22px rgba(73,105,255,.34)}
+    .hero-actions a.secondary{background:rgba(15,24,57,.65);border:1px solid rgba(160,170,255,.55);box-shadow:none}
+    .hero-art{position:absolute;right:2%;top:0;width:42%;height:100%;opacity:.96;pointer-events:none}
+    .hero-art svg{width:100%;height:100%;overflow:visible}
+    .notice{margin:18px 0 24px;padding:12px 16px;border:1px solid rgba(153,119,255,.35);border-radius:12px;
+      background:linear-gradient(100deg,rgba(74,80,190,.16),rgba(155,72,204,.1));color:var(--muted);font-size:11px;line-height:1.6}
+    .notice strong{color:#d5c5ff}
+    .section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:25px 2px 14px}
+    .section-heading h3{margin:0;font-size:18px;letter-spacing:.1px}
+    .section-heading span{color:var(--muted);font-size:11px}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+    .card{min-width:0;position:relative;overflow:hidden;padding:18px;border-radius:18px;border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(23,37,79,.94),rgba(14,21,48,.98));box-shadow:var(--shadow);transition:transform .2s,border-color .2s}
+    [data-theme="light"] .card{background:linear-gradient(145deg,#fff,#f2f3ff)}
+    .card:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));opacity:.9}
+    .card:hover{transform:translateY(-4px);border-color:rgba(139,144,255,.72)}
+    .card-top{display:flex;align-items:center;gap:12px;margin-bottom:17px}
+    .icon{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:13px;color:#fff;font-size:22px;
+      background:linear-gradient(145deg,rgba(36,198,255,.35),rgba(56,101,255,.25));border:1px solid rgba(76,194,255,.48);box-shadow:inset 0 0 18px rgba(46,155,255,.14)}
+    .card:nth-child(2) .icon{background:linear-gradient(145deg,rgba(139,91,255,.48),rgba(85,75,220,.25));border-color:rgba(170,122,255,.55)}
+    .card:nth-child(3) .icon{background:linear-gradient(145deg,rgba(210,83,255,.4),rgba(110,70,220,.25));border-color:rgba(219,119,255,.55)}
+    .card:nth-child(4) .icon{background:linear-gradient(145deg,rgba(33,205,218,.35),rgba(45,106,218,.25));border-color:rgba(68,218,234,.5)}
+    .card h4{margin:0 0 4px;font-size:16px}
+    .card-top p{margin:0;color:var(--muted);font-size:11px;line-height:1.4}
+    label{display:block;font-size:11px;font-weight:750;margin:13px 0 7px;color:var(--muted)}
+    input[type=file],input[type=number],input[type=text]{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:rgba(6,12,31,.55);padding:10px;color:var(--ink);font:inherit;font-size:11px}
+    [data-theme="light"] input[type=file],[data-theme="light"] input[type=number],[data-theme="light"] input[type=text]{background:#f7f8ff}
+    input:focus{outline:2px solid rgba(93,144,255,.35);border-color:#6e8dff}
+    input[type=file]{padding:8px}
+    input::file-selector-button{border:0;border-radius:7px;background:linear-gradient(110deg,#356dff,#7654e9);color:white;padding:7px 9px;margin-right:8px;font-size:10px;cursor:pointer}
+    .hint{color:var(--muted);font-size:10px;line-height:1.5;margin-top:6px;min-height:28px}
+    button.submit{width:100%;margin-top:15px;border:1px solid rgba(130,157,255,.55);border-radius:10px;padding:11px 13px;
+      color:white;font-size:12px;font-weight:800;cursor:pointer;background:linear-gradient(100deg,#286dff,#7049ed);box-shadow:0 5px 17px rgba(58,89,230,.22);transition:.18s}
+    button.submit:hover{filter:brightness(1.13);transform:translateY(-1px)}
+    button:disabled{opacity:.6;cursor:wait}
+    .loading{color:#8bdcff;font-size:11px;margin-top:10px}
+    .result{display:none;margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:11px;background:rgba(5,11,29,.55)}
+    [data-theme="light"] .result{background:#f7f8ff}
+    .result.visible{display:block}
+    .result-title{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px;font-size:12px}
+    .result-title span{color:var(--green)}
+    .prediction{font-size:20px;font-weight:850;margin:8px 0 12px}
+    .prediction.healthy{color:var(--green)}.prediction.parkinson{color:var(--red)}
+    .prob-row{display:flex;justify-content:space-between;font-size:10px;margin:9px 0 5px}
+    .bar{height:7px;background:rgba(119,139,194,.2);border-radius:9px;overflow:hidden}
+    .bar>div{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--cyan),#596cff,var(--violet));transition:width .7s ease}
+    .metadata{color:var(--muted);font-size:10px;margin-top:11px;line-height:1.6}
+    .error{color:var(--red);font-size:11px;line-height:1.5}
+    .lower-grid{display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:15px;margin-top:24px}
+    .info-panel{border:1px solid var(--line);border-radius:17px;padding:18px;background:linear-gradient(145deg,rgba(20,32,70,.9),rgba(12,19,43,.95));box-shadow:var(--shadow);min-width:0}
+    [data-theme="light"] .info-panel{background:linear-gradient(145deg,#fff,#f0f2ff)}
+    .info-panel h3{font-size:15px;margin:0 0 7px}
+    .info-panel p{font-size:11px;line-height:1.6;color:var(--muted);margin:0}
+    .pipeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}
+    .pipeline>div{padding:12px 8px;text-align:center;border:1px solid var(--line);border-radius:12px;background:rgba(69,96,190,.12)}
+    .pipeline small{font-size:9px;color:#8edfff;font-weight:800}
+    .pipeline strong{display:block;font-size:10px;margin:7px 0 4px}
+    .pipeline p{font-size:9px}
+    .fusion-placeholder{margin-top:13px;padding:12px;border:1px dashed rgba(160,130,255,.5);border-radius:11px;color:var(--muted);font-size:10px;line-height:1.6;background:rgba(112,75,202,.08)}
+    .research-panel{margin-top:15px;padding:15px 18px;border:1px solid rgba(144,110,255,.4);border-radius:14px;background:linear-gradient(100deg,rgba(63,88,195,.15),rgba(132,65,186,.12));color:var(--muted);font-size:11px;line-height:1.65}
+    footer{border-top:1px solid var(--line);text-align:center;padding:20px;color:var(--muted);font-size:10px;line-height:1.7;margin-top:25px}
+
+    .assistant-panel{margin:24px 0 10px;border:1px solid rgba(137,124,255,.42);border-radius:19px;padding:20px;
+      background:linear-gradient(145deg,rgba(20,34,76,.94),rgba(14,20,48,.98));box-shadow:var(--shadow)}
+    [data-theme="light"] .assistant-panel{background:linear-gradient(145deg,#fff,#f0f1ff)}
+    .assistant-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+    .assistant-head h3{margin:0 0 6px;font-size:17px}
+    .assistant-head p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+    .assistant-tag{font-size:10px;color:#c8b7ff;border:1px solid rgba(166,130,255,.4);border-radius:99px;padding:6px 10px;white-space:nowrap}
+    .chat-log{height:290px;overflow:auto;margin:17px 0 12px;padding:13px;border:1px solid var(--line);border-radius:13px;background:rgba(5,11,29,.38)}
+    [data-theme="light"] .chat-log{background:#f8f9ff}
+    .chat-message{max-width:88%;margin:0 0 12px;padding:11px 13px;border-radius:12px;font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+    .chat-message.user{margin-left:auto;background:linear-gradient(110deg,rgba(52,111,255,.3),rgba(126,76,237,.28));border:1px solid rgba(126,145,255,.35)}
+    .chat-message.assistant{background:rgba(92,116,190,.13);border:1px solid var(--line)}
+    .chat-message.error{color:var(--red);border-color:rgba(255,130,153,.4)}
+    .chat-compose{display:flex;gap:10px;align-items:flex-end}
+    .chat-compose textarea{flex:1;min-height:48px;max-height:120px;resize:vertical;border:1px solid var(--line);border-radius:11px;padding:12px;background:rgba(6,12,31,.55);color:var(--ink);font:inherit;font-size:12px}
+    [data-theme="light"] .chat-compose textarea{background:#f7f8ff}
+    .chat-compose textarea:focus{outline:2px solid rgba(93,144,255,.35);border-color:#6e8dff}
+    .chat-send{border:0;border-radius:11px;padding:13px 18px;background:linear-gradient(110deg,#286dff,#7049ed);color:#fff;font-weight:800;cursor:pointer}
+    .chat-send:disabled{opacity:.55;cursor:wait}
+    .chat-sources{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);line-height:1.8}
+    .chat-sources a{color:#8edfff;text-decoration:none;margin-right:12px}
+    [data-theme="light"] .chat-sources a{color:#365fc7}
+    .chat-disclaimer{font-size:10px;color:var(--muted);line-height:1.6;margin-top:10px}
+\n    @media(max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower-grid{grid-template-columns:1fr 1fr}.lower-grid .info-panel:last-child{grid-column:1/-1}}
+    @media(max-width:720px){header{height:auto;min-height:70px;padding:12px 16px;flex-wrap:wrap}.brand{min-width:0}nav{display:none}.header-actions{margin-left:auto}.status{display:none}
+      main{padding:20px 14px}.hero{min-height:300px;padding:24px}.hero-art{width:68%;right:-18%;opacity:.32}.hero-copy{max-width:100%}.hero h2{font-size:34px}
+      .grid,.lower-grid{grid-template-columns:1fr}.lower-grid .info-panel:last-child{grid-column:auto}.pipeline{grid-template-columns:repeat(2,1fr)}.section-heading span{font-size:10px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">∿</div>
+      <div><h1>NEURODETECT</h1><p>Parkinson's Multimodal Research</p></div>
+    </div>
+    <nav aria-label="Main navigation">
+      <a href="#overview">⌂ &nbsp;Overview</a>
+      <a href="#modalities">▤ &nbsp;Modalities</a>
+      <a href="#pipeline">♧ &nbsp;Model Pipeline</a>
+      <a href="#research">▱ &nbsp;Research</a>      <a href="#assistant">✧ &nbsp;Assistant</a>
+    </nav>
+    <div class="header-actions">
+      <div class="theme-toggle" aria-label="Colour theme">
+        <button type="button" id="light-toggle">☼ Light</button>
+        <button type="button" id="dark-toggle">☾ Dark</button>
+      </div>
+      <span class="status">● SYSTEM ONLINE</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <div class="hero-copy">
+        <div class="eyebrow">MULTIMODAL AI <span>RESEARCH PLATFORM</span></div>
+        <h2>Explore Parkinson's detection,<br><span class="gradient">across four modalities.</span></h2>
+        <p>A multimodal AI research platform that evaluates Audio, Drawing, ECG and MRI data through dedicated model pipelines. Each modality produces its own independent prediction.</p>
+        <div class="hero-actions">
+          <a href="#modalities">▷ &nbsp;Start Analysis</a>
+          <a class="secondary" href="#pipeline">♧ &nbsp;View Model Pipeline</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 620 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="wave" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22D9FF"/><stop offset=".52" stop-color="#6574FF"/><stop offset="1" stop-color="#D16BFF"/></linearGradient>
+            <radialGradient id="glow"><stop stop-color="#9C75FF" stop-opacity=".45"/><stop offset="1" stop-color="#426BFF" stop-opacity="0"/></radialGradient>
+          </defs>
+          <circle cx="390" cy="145" r="142" fill="url(#glow)"/>
+          <circle cx="390" cy="145" r="112" stroke="#6D85FF" stroke-opacity=".35"/>
+          <circle cx="390" cy="145" r="88" stroke="#B36DFF" stroke-opacity=".45" stroke-dasharray="3 7"/>
+          <path d="M0 177 C60 177 65 120 120 120 S180 225 235 180 S300 78 350 128 S420 220 470 160 S540 104 620 145" stroke="url(#wave)" stroke-width="2.4" opacity=".95"/>
+          <path d="M0 194 C65 194 72 150 120 150 S184 242 238 198 S300 110 350 154 S418 239 474 188 S550 138 620 170" stroke="url(#wave)" stroke-width="1.2" opacity=".42"/>
+          <path d="M0 160 C62 160 74 92 122 92 S180 204 235 160 S300 52 350 104 S420 190 470 138 S550 82 620 126" stroke="url(#wave)" stroke-width="1.1" opacity=".36"/>
+          <g fill="#8CEBFF"><circle cx="120" cy="120" r="4"/><circle cx="235" cy="180" r="4"/><circle cx="350" cy="128" r="4"/></g>
+          <g fill="#D38CFF"><circle cx="470" cy="160" r="4"/><circle cx="540" cy="104" r="4"/></g>
+          <g stroke="#8B8DFF" stroke-opacity=".45"><path d="M390 18V272M263 145H517"/><circle cx="390" cy="145" r="126"/></g>
+        </svg>
+      </div>
+    </section>
+    <div class="notice">
+      <strong>Research disclaimer:</strong> This application is an experimental
+      research prototype. Its predictions are not medical diagnoses and must
+      not be used for clinical decisions. Current modality outputs are independent. A combined class-level fusion result will only appear after a valid fusion model has been trained and connected.
+    </div>
+
+    <div class="section-heading" id="modalities">
+      <h3>Multimodal Analysis Workspace</h3>
+      <span>Four modality pipelines</span>
+    </div>
+
+    <section class="grid">
+      <!-- AUDIO -->
+      <article class="card">
+        <div class="card-top">
+          <div class="icon">♫</div>
+          <div>
+            <h4>Audio Analysis</h4>
+            <p>Voice recording classification</p>
+          </div>
+        </div>
+        <form id="audio-form" data-endpoint="/predict/audio">
+          <label for="audio-file">Upload audio file (.wav)</label>
+          <input id="audio-file" name="file" type="file" accept=".wav,audio/wav" required>
+
+          <label for="audio-task">Task ID</label>
+          <input id="audio-task" name="task" type="number" step="1" required
+                 placeholder="Enter the task ID used by your model">
+          <div class="hint">Enter the same task ID convention used during model training.</div>
+
+          <button class="submit" type="submit">Analyze Audio</button>
+          <div class="loading" aria-live="polite"></div>
+          <div class="result" aria-live="polite"></div>
+        </form>
+      </article>
+
+      <!-- DRAWING -->
+      <article class="card">
+        <div class="card-top">
+          <div class="icon">✎</div>
+          <div>
+            <h4>Drawing Analysis</h4>
+            <p>Drawing image classification</p>
+          </div>
+        </div>
+        <form id="drawing-form" data-endpoint="/predict/drawing">
+          <label for="drawing-file">Upload drawing (.png, .jpg, .jpeg)</label>
+          <input id="drawing-file" name="file" type="file"
+                 accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+
+          <label for="drawing-task">Task ID</label>
+          <input id="drawing-task" name="task" type="number" step="1" required
+                 placeholder="Enter the task ID used by your model">
+
+          <label for="drawing-shape">Shape</label>
+          <input id="drawing-shape" name="shape" type="text" required
+                 placeholder="Enter the expected shape value">
+          <div class="hint">Use the exact shape label expected by your drawing model.</div>
+
+          <button class="submit" type="submit">Analyze Drawing</button>
+          <div class="loading" aria-live="polite"></div>
+          <div class="result" aria-live="polite"></div>
+        </form>
+      </article>
+
+      <!-- ECG -->
+      <article class="card">
+        <div class="card-top">
+          <div class="icon">♡</div>
+          <div>
+            <h4>ECG Analysis</h4>
+            <p>ECG image classification</p>
+          </div>
+        </div>
+        <form id="ecg-form" data-endpoint="/predict/ecg">
+          <label for="ecg-file">Upload ECG image (.png, .jpg, .jpeg)</label>
+          <input id="ecg-file" name="file" type="file"
+                 accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+          <div class="hint">Upload an ECG image in one of the supported formats.</div>
+
+          <button class="submit" type="submit">Analyze ECG</button>
+          <div class="loading" aria-live="polite"></div>
+          <div class="result" aria-live="polite"></div>
+        </form>
+      </article>
+
+      <!-- MRI -->
+      <article class="card">
+        <div class="card-top">
+          <div class="icon">◉</div>
+          <div>
+            <h4>MRI Analysis</h4>
+            <p>3D brain MRI volume classification</p>
+          </div>
+        </div>
+        <form id="mri-form" data-endpoint="/predict/mri">
+          <label for="mri-file">Upload MRI volume (.nii, .nii.gz)</label>
+          <input id="mri-file" name="file" type="file"
+                 accept=".nii,.nii.gz,application/gzip" required>
+          <div class="hint">The MRI must match the input shape and voxel-spacing protocol supported by the trained model.</div>
+
+          <button class="submit" type="submit">Analyze MRI</button>
+          <div class="loading" aria-live="polite"></div>
+          <div class="result" aria-live="polite"></div>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <section class="extra-sections" style="max-width:1540px;margin:auto;padding:0 clamp(18px,3vw,42px)">
+    <div class="lower-grid">
+      <section class="info-panel" id="pipeline">
+        <h3>♧ &nbsp;Inference Pipeline</h3>
+        <p>From modality input to model prediction</p>
+        <div class="pipeline">
+          <div><small>01</small><strong>Input</strong><p>Upload sample</p></div>
+          <div><small>02</small><strong>Preprocessing</strong><p>Prepare data</p></div>
+          <div><small>03</small><strong>Feature + Model</strong><p>Classify</p></div>
+          <div><small>04</small><strong>Prediction</strong><p>Modality output</p></div>
+        </div>
+      </section>
+      <section class="info-panel">
+        <h3>✧ &nbsp;Research Status</h3>
+        <p>Independent modality predictions</p>
+        <div class="fusion-placeholder">Audio · Drawing · ECG · MRI<br><br>Four separate model pipelines are available. Patient-level multimodal fusion is a future research stage, not an active diagnostic output.</div>
+      </section>
+    </div>
+    <div class="research-panel" id="research"><strong style="color:#d7c9ff">ⓘ &nbsp;Research limitations</strong> &nbsp; Current classifiers produce separate modality predictions. A meaningful patient-level multimodal result requires verified participant-level links across modalities, sufficient matched samples, and a trained and validated fusion model. This prototype is for research use only, not clinical diagnosis.</div>
+  </section>
+
+
+    <section class="assistant-panel" id="assistant">
+      <div class="assistant-head">
+        <div>
+          <h3>✧ &nbsp;NeuroDetect AI Assistant</h3>
+          <p>Ask educational questions about Parkinson's disease, symptoms, diagnosis, care and research.</p>
+        </div>
+        <span class="assistant-tag">CURATED-SOURCE MODE </span>
+      </div>
+      <div class="chat-log" id="assistant-chat-log" aria-live="polite">
+        <div class="chat-message assistant">Hello! I can explain Parkinson's-related topics using a curated set of official sources. What would you like to understand?</div>
+      </div>
+      <form class="chat-compose" id="assistant-chat-form">
+        <textarea id="assistant-question" rows="2" maxlength="4000" placeholder="Ask a question about Parkinson's disease..." required></textarea>
+        <button class="chat-send" id="assistant-send" type="submit">Send</button>
+      </form>
+      <div class="chat-sources" id="assistant-sources">
+        <strong>Curated sources:</strong>
+        <a href="https://www.parkinson.org/understanding-parkinsons/what-is-parkinsons" target="_blank" rel="noopener">[1] What is Parkinson's? — Parkinson's Foundation</a>
+        <a href="https://www.who.int/news-room/fact-sheets/detail/parkinson-disease" target="_blank" rel="noopener">[2] Parkinson disease — World Health Organization</a>
+        <a href="https://www.parkinson.org/understanding-parkinsons/getting-diagnosed" target="_blank" rel="noopener">[3] Getting Diagnosed — Parkinson's Foundation</a>
+        <a href="https://www.parkinson.org/understanding-parkinsons/10-early-signs" target="_blank" rel="noopener">[4] 10 Early Signs — Parkinson's Foundation</a>
+        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10865258/" target="_blank" rel="noopener">[5] ML/DL review — Heliyon (2024)</a>
+        <a href="https://link.springer.com/10.1007/s44163-025-00241-9" target="_blank" rel="noopener">[6] ML/DL review — Discover Artificial Intelligence (2025)</a>
+        <a href="https://www.mdpi.com/2075-4418/13/11/1924" target="_blank" rel="noopener">[7] Acoustic signal classification — Diagnostics (2023)</a>
+        <a href="https://www.sciencedirect.com/science/article/pii/S0957417423010436" target="_blank" rel="noopener">[8] Wearable sensors systematic review — Expert Systems with Applications (2023)</a>
+        <a href="https://www.nature.com/articles/s41598-024-64004-9" target="_blank" rel="noopener">[9] Multiclass ML — Scientific Reports (2024)</a>
+        <a href="https://www.sciencedirect.com/science/article/pii/S1877050923000078" target="_blank" rel="noopener">[10] Early detection ML — Procedia Computer Science (2023)</a>
+        <a href="https://www.nature.com/articles/s41598-025-96575-6" target="_blank" rel="noopener">[11] Explainable voice AI — Scientific Reports (2025)</a>
+        <a href="https://www.mdpi.com/2075-4418/12/8/2003" target="_blank" rel="noopener">[12] ML review — Diagnostics (2022)</a>
+        <a href="https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2023.1084001/full" target="_blank" rel="noopener">[13] Voice signal ML — Frontiers in AI (2023)</a>
+        <a href="https://www.nature.com/articles/s41531-022-00288-w" target="_blank" rel="noopener">[14] Multimodality ML — npj Parkinson's Disease (2022)</a>
+        <a href="https://ojs.bonviewpress.com/index.php/jdsis/article/view/831" target="_blank" rel="noopener">[15] Voice biomarkers ML — Journal of Data Science and Intelligent Systems (2023)</a>
+      </div>
+      <p class="chat-disclaimer">Educational information only, not medical advice or diagnosis. The assistant cannot interpret your personal symptoms or prescribe treatment. NeuroDetect's four model outputs remain independent experimental predictions. Do not enter identifiable health records or sensitive personal information.</p>
+    </section>
+
+  <footer>
+    NeuroDetect · Multimodal Parkinson's Research Prototype<br>
+    Independent model outputs only · Not intended for clinical diagnosis
+  </footer>
+
+  <script>
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        '"': "&quot;", "'": "&#039;"
+      })[char]);
+    }
+
+    function formatPercent(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? (number * 100).toFixed(2) + "%" : "N/A";
+    }
+
+    function renderResult(container, data) {
+      const className = String(data.class_name || "Unknown");
+      const isHealthy = className.toLowerCase() === "healthy";
+      const probabilities = data.probabilities || {};
+
+      let probabilityHtml = "";
+      for (const [label, value] of Object.entries(probabilities)) {
+        const numeric = Number(value);
+        const width = Number.isFinite(numeric)
+          ? Math.max(0, Math.min(100, numeric * 100)) : 0;
+
+        probabilityHtml += `
+          <div class="prob-row">
+            <span>${escapeHtml(label)}</span>
+            <strong>${formatPercent(value)}</strong>
+          </div>
+          <div class="bar"><div style="width:${width}%"></div></div>
+        `;
+      }
+
+      let metadata = "";
+      if (Array.isArray(data.input_shape)) {
+        metadata += `Input shape: ${escapeHtml(data.input_shape.join(" × "))}<br>`;
+      }
+      if (Array.isArray(data.voxel_spacing_mm)) {
+        metadata += `Voxel spacing: ${escapeHtml(data.voxel_spacing_mm.join(", "))} mm<br>`;
+      }
+      if (data.class_id !== undefined) {
+        metadata += `Class ID: ${escapeHtml(data.class_id)}`;
+      }
+
+      container.innerHTML = `
+        <div class="result-title">
+          <strong>Prediction result</strong>
+          <span>✓ Complete</span>
+        </div>
+        <div class="prediction ${isHealthy ? "healthy" : "parkinson"}">
+          ${escapeHtml(className)}
+        </div>
+        ${probabilityHtml}
+        ${metadata ? `<div class="metadata">${metadata}</div>` : ""}
+      `;
+      container.classList.add("visible");
+      requestAnimationFrame(() => {
+        container.querySelectorAll(".bar > div").forEach(bar => {
+          const width = bar.style.width;
+          bar.style.width = "0";
+          requestAnimationFrame(() => { bar.style.width = width; });
+        });
+      });
+    }
+
+    async function submitPrediction(event) {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const button = form.querySelector("button[type='submit']");
+      const loading = form.querySelector(".loading");
+      const result = form.querySelector(".result");
+      const formData = new FormData(form);
+      const endpoint = form.dataset.endpoint;
+
+      result.classList.remove("visible");
+      result.innerHTML = "";
+      loading.textContent = "Processing sample. Please wait...";
+      button.disabled = true;
+      button.textContent = "Processing...";
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.detail || `Request failed (${response.status})`);
+        }
+
+        renderResult(result, data);
+        loading.textContent = "";
+      } catch (error) {
+        result.innerHTML = `<div class="error">Error: ${escapeHtml(error.message)}</div>`;
+        result.classList.add("visible");
+        loading.textContent = "";
+      } finally {
+        button.disabled = false;
+        button.textContent = {
+          "/predict/audio": "Analyze Audio",
+          "/predict/drawing": "Analyze Drawing",
+          "/predict/ecg": "Analyze ECG",
+          "/predict/mri": "Analyze MRI"
+        }[endpoint] || "Analyze";
+      }
+    }
+
+    document.querySelectorAll("form[data-endpoint]").forEach(form => {
+      form.addEventListener("submit", submitPrediction);
+    });
+
+    // Theme preference: dark by default, remembered between visits.
+    const darkToggle = document.getElementById("dark-toggle");
+    const lightToggle = document.getElementById("light-toggle");
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      darkToggle.classList.toggle("active", theme === "dark");
+      lightToggle.classList.toggle("active", theme === "light");
+      try { localStorage.setItem("neurodetect-theme", theme); } catch (_) {}
+    }
+    let initialTheme = "dark";
+    try { initialTheme = localStorage.getItem("neurodetect-theme") || "dark"; } catch (_) {}
+    setTheme(initialTheme === "light" ? "light" : "dark");
+    darkToggle.addEventListener("click", () => setTheme("dark"));
+    lightToggle.addEventListener("click", () => setTheme("light"));
+
+    // Source-grounded assistant. Chat history is kept only in this page session.
+    const assistantForm = document.getElementById("assistant-chat-form");
+    const assistantInput = document.getElementById("assistant-question");
+    const assistantLog = document.getElementById("assistant-chat-log");
+    const assistantSend = document.getElementById("assistant-send");
+    const assistantHistory = [];
+
+    function addChatMessage(role, content, isError = false) {
+      const node = document.createElement("div");
+      node.className = `chat-message ${role}${isError ? " error" : ""}`;
+      node.textContent = content;
+      assistantLog.appendChild(node);
+      assistantLog.scrollTop = assistantLog.scrollHeight;
+      return node;
+    }
+
+    assistantForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = assistantInput.value.trim();
+      if (!question || assistantSend.disabled) return;
+
+      assistantHistory.push({ role: "user", content: question });
+      addChatMessage("user", question);
+      assistantInput.value = "";
+      assistantSend.disabled = true;
+      assistantSend.textContent = "Thinking...";
+      const pending = addChatMessage("assistant", "Searching the curated knowledge context and preparing an answer...");
+
+      try {
+        const response = await fetch("/assistant/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: assistantHistory.slice(-12) })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || `Assistant request failed (${response.status})`);
+
+        pending.textContent = data.answer || "No answer was returned.";
+        assistantHistory.push({ role: "assistant", content: data.answer || "" });
+
+        if (Array.isArray(data.sources) && data.sources.length) {
+          const sourceBox = document.getElementById("assistant-sources");
+          sourceBox.replaceChildren();
+          const heading = document.createElement("strong");
+          heading.textContent = "Sources used by the assistant: ";
+          sourceBox.appendChild(heading);
+          data.sources.forEach((source) => {
+            const link = document.createElement("a");
+            link.href = source.url;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = `[${source.id}] ${source.title}`;
+            sourceBox.appendChild(link);
+          });
+        }
+      } catch (error) {
+        pending.classList.add("error");
+        pending.textContent = `Assistant unavailable: ${error.message}`;
+        assistantHistory.pop();
+      } finally {
+        assistantSend.disabled = false;
+        assistantSend.textContent = "Send";
+        assistantInput.focus();
+      }
+    });
+
+  </script>
+</body>
+</html>

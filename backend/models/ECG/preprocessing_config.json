@@ -1,0 +1,10 @@
+{
+  "image_size": [
+    224,
+    224
+  ],
+  "colour": "RGB",
+  "mobilenet_preprocess": "tensorflow.keras.applications.mobilenet_v2.preprocess_input",
+  "warning": "No verified patient IDs; embedding clusters are similarity proxies.",
+  "feature_count": 1280
+}

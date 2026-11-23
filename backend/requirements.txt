@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-multipart
+numpy<2
+pandas
+scikit-learn
+joblib
+librosa
+soundfile
+tensorflow==2.20.0
+keras==3.13.2
+nibabel
+Pillow
+scipy
+praat-parselmouth
+scikit-image\nhttpx\npython-dotenv\n

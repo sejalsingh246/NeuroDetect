@@ -1,0 +1,39 @@
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python environments
+.venv/
+.venv311/
+venv/
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+.vscode/
+
+# Dataset and temporary files
+data/
+datasets/
+uploads/
+temp/
+*.nii
+*.nii.gz
+*.csv
+
+# Logs and cache
+*.log
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+# Backup archives
+*.zip
+
+# Secrets
+.env
