@@ -1,0 +1,12 @@
+{
+  "image_size": [
+    224,
+    224
+  ],
+  "colour": "grayscale replicated to RGB",
+  "mobilenet_preprocess": "tensorflow.keras.applications.mobilenet_v2.preprocess_input",
+  "task_required": true,
+  "shape_required": true,
+  "selected_feature_set": "CNN embedding",
+  "feature_count": 1282
+}

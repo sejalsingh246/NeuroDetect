@@ -1,0 +1,22 @@
+{
+  "normalisation": "volume_features() implementation in this notebook",
+  "training_subset": "matched protocol",
+  "allowed_shapes": [
+    [
+      204,
+      256,
+      48
+    ],
+    [
+      228,
+      256,
+      54
+    ]
+  ],
+  "allowed_spacing_mm": [
+    0.938,
+    0.938,
+    3.0
+  ],
+  "feature_count": 71
+}

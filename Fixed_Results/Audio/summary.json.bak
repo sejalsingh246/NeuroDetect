@@ -1,0 +1,42 @@
+{
+  "best_model": "LogReg",
+  "table": {
+    "acc": {
+      "LogReg": "0.781 \u00b1 0.027",
+      "SVM-RBF": "0.803 \u00b1 0.028",
+      "ExtraTrees": "0.819 \u00b1 0.020",
+      "RandForest": "0.762 \u00b1 0.037"
+    },
+    "bal_acc": {
+      "LogReg": "0.766 \u00b1 0.026",
+      "SVM-RBF": "0.794 \u00b1 0.029",
+      "ExtraTrees": "0.800 \u00b1 0.023",
+      "RandForest": "0.746 \u00b1 0.038"
+    },
+    "f1": {
+      "LogReg": "0.720 \u00b1 0.032",
+      "SVM-RBF": "0.760 \u00b1 0.034",
+      "ExtraTrees": "0.759 \u00b1 0.031",
+      "RandForest": "0.694 \u00b1 0.049"
+    },
+    "auc": {
+      "LogReg": "0.839 \u00b1 0.020",
+      "SVM-RBF": "0.825 \u00b1 0.016",
+      "ExtraTrees": "0.817 \u00b1 0.022",
+      "RandForest": "0.806 \u00b1 0.016"
+    }
+  },
+  "subject_level": {
+    "acc": 0.8378378378378378,
+    "bal_acc": 0.8273809523809523,
+    "f1": 0.8,
+    "auc": 0.8690476190476191,
+    "n_subjects": 37
+  },
+  "inference_feature_count": 161,
+  "class_mapping": {
+    "0": "Healthy",
+    "1": "Parkinson's"
+  },
+  "inference_ready_schema": true
+}

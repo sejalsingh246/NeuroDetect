@@ -1,0 +1,40 @@
+{
+  "setup": [
+    "matched protocol",
+    "handcrafted"
+  ],
+  "best_model": "LogReg",
+  "table": {
+    "acc": {
+      "LogReg": "0.697 \u00b1 0.059",
+      "SVM-RBF": "0.691 \u00b1 0.037",
+      "ExtraTrees": "0.644 \u00b1 0.047",
+      "RandForest": "0.647 \u00b1 0.033"
+    },
+    "bal_acc": {
+      "LogReg": "0.694 \u00b1 0.088",
+      "SVM-RBF": "0.484 \u00b1 0.031",
+      "ExtraTrees": "0.522 \u00b1 0.062",
+      "RandForest": "0.477 \u00b1 0.035"
+    },
+    "f1": {
+      "LogReg": "0.769 \u00b1 0.042",
+      "SVM-RBF": "0.816 \u00b1 0.026",
+      "ExtraTrees": "0.763 \u00b1 0.031",
+      "RandForest": "0.778 \u00b1 0.024"
+    },
+    "auc": {
+      "LogReg": "0.714 \u00b1 0.043",
+      "SVM-RBF": "0.512 \u00b1 0.140",
+      "ExtraTrees": "0.656 \u00b1 0.038",
+      "RandForest": "0.665 \u00b1 0.047"
+    }
+  },
+  "n_volumes": 32,
+  "inference_feature_count": 71,
+  "class_mapping": {
+    "0": "Healthy",
+    "1": "Parkinson's"
+  },
+  "inference_ready_schema": true
+}

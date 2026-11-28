@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from collections import Counter
 import shutil
 import os
 
@@ -9,7 +10,8 @@ from pydantic import BaseModel, Field
 
 import joblib
 from fastapi.responses import FileResponse
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Request
+from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from tensorflow.keras.models import load_model
 
@@ -23,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR.parent / ".env")
 MODELS_DIR = BASE_DIR / "models"
 FRONTEND_PATH = BASE_DIR / "templates" / "index.html"
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 MODEL_PATHS = {
     "audio": MODELS_DIR / "Audio" / "audio_final_model.pkl",
     "drawing": MODELS_DIR / "Drawing" / "drawing_final_model.pkl",
@@ -87,10 +90,17 @@ def require_model(name):
     return model
 
 
+
 def run_with_upload(upload: UploadFile, allowed_suffixes, predictor):
     filename_lower = (upload.filename or "").lower()
-    # Preserve the compound NIfTI suffix; nibabel relies on the .nii.gz ending.
-    suffix = ".nii.gz" if filename_lower.endswith(".nii.gz") else Path(filename_lower).suffix
+
+    # Preserve the compound NIfTI suffix.
+    suffix = (
+        ".nii.gz"
+        if filename_lower.endswith(".nii.gz")
+        else Path(filename_lower).suffix
+    )
+
     if not any(filename_lower.endswith(s) for s in allowed_suffixes):
         raise HTTPException(
             status_code=400,
@@ -98,34 +108,96 @@ def run_with_upload(upload: UploadFile, allowed_suffixes, predictor):
         )
 
     temp_path = None
+
     try:
         with NamedTemporaryFile(delete=False, suffix=suffix) as temp:
             temp_path = Path(temp.name)
             shutil.copyfileobj(upload.file, temp)
+
         return predictor(temp_path)
+
     except HTTPException:
         raise
+
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     except Exception as exc:
-        # Keep internal stack traces in server logs, not in the public response.
         print(f"[PREDICTION ERROR] {type(exc).__name__}: {exc}")
-        raise HTTPException(status_code=500, detail="Prediction failed. Check backend logs.") from exc
+        raise HTTPException(
+            status_code=500,
+            detail="Prediction failed. Check backend logs.",
+        ) from exc
+
     finally:
         if temp_path is not None:
             temp_path.unlink(missing_ok=True)
+
         upload.file.close()
 
 
+def run_fusion_vote(predictions):
+    """
+    Experimental decision-level hard voting.
+    Uses class_id from successful modality predictions.
+    Does not average probabilities.
+    """
+
+    if len(predictions) < 2:
+        raise HTTPException(
+            status_code=422,
+            detail="At least two successful modality predictions are required.",
+        )
+
+    votes = Counter(
+        int(result["class_id"])
+        for result in predictions.values()
+    )
+
+    highest_vote_count = max(votes.values())
+
+    winners = [
+        class_id
+        for class_id, count in votes.items()
+        if count == highest_vote_count
+    ]
+
+    if len(winners) != 1:
+        consensus = None
+        status = "no_consensus"
+        label = "No consensus"
+    else:
+        consensus = winners[0]
+        status = "consensus"
+        label = "Parkinson's" if consensus == 1 else "Healthy"
+
+    return {
+        "status": status,
+        "consensus_class_id": consensus,
+        "consensus_label": label,
+        "vote_counts": dict(votes),
+        "modality_predictions": predictions,
+        "warning": (
+            "Experimental hard-voting result only. This is not a clinically "
+            "validated multimodal diagnosis. Same-patient identity is based "
+            "on user confirmation and is not independently verified."
+        ),
+    }
+
+
 @app.get("/")
-def home():
+async def home(request: Request):
     if not FRONTEND_PATH.is_file():
         raise HTTPException(
             status_code=500,
-            detail="Frontend file not found. Check backend/templates/index.html"
+            detail=f"Dashboard file not found: {FRONTEND_PATH}"
         )
-    return FileResponse(FRONTEND_PATH)
 
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={}
+    )
 
 @app.get("/health")
 def health_check():
@@ -203,6 +275,122 @@ class AssistantMessage(BaseModel):
 
 class AssistantRequest(BaseModel):
     messages: list[AssistantMessage] = Field(min_length=1, max_length=12)
+
+
+@app.post("/predict/fusion")
+async def predict_fusion(
+    same_patient_confirmed: bool = Form(...),
+
+    audio_file: UploadFile = File(None),
+    audio_task: int = Form(1),
+
+    drawing_file: UploadFile = File(None),
+    drawing_task: int = Form(1),
+    drawing_shape: str = Form("spiral"),
+
+    ecg_file: UploadFile = File(None),
+    mri_file: UploadFile = File(None),
+):
+    if not same_patient_confirmed:
+        raise HTTPException(
+            status_code=400,
+            detail="Please confirm that all uploaded samples belong to the same person."
+        )
+
+    uploads = {
+        "Audio": (audio_file, {".wav"}),
+        "Drawing": (drawing_file, {".png", ".jpg", ".jpeg"}),
+        "ECG": (ecg_file, {".png", ".jpg", ".jpeg"}),
+        "MRI": (mri_file, {".nii", ".nii.gz"}),
+    }
+
+    supplied = {
+        name: item for name, item in uploads.items()
+        if item[0] is not None
+    }
+
+    if len(supplied) < 2:
+        raise HTTPException(
+            status_code=422,
+            detail="Upload at least two modality files."
+        )
+
+    temp_paths = {}
+    predictions = {}
+    errors = {}
+
+    try:
+        # Save all supplied uploads to temporary files.
+        for name, (upload, allowed_suffixes) in supplied.items():
+            filename = upload.filename or ""
+            lower_name = filename.lower()
+
+            if not any(lower_name.endswith(suffix) for suffix in allowed_suffixes):
+                errors[name] = "Unsupported file format."
+                continue
+
+            suffix = ".nii.gz" if lower_name.endswith(".nii.gz") else Path(filename).suffix
+
+            with NamedTemporaryFile(delete=False, suffix=suffix) as temp:
+                shutil.copyfileobj(upload.file, temp)
+                temp_paths[name] = temp.name
+
+        # Run each modality independently so one failure doesn't stop the others.
+        if "Audio" in temp_paths:
+            try:
+                predictions["Audio"] = predict_audio(
+                    temp_paths["Audio"],
+                    audio_task,
+                    require_model("audio")
+                )
+            except Exception as exc:
+                errors["Audio"] = str(exc)
+
+        if "Drawing" in temp_paths:
+            try:
+                predictions["Drawing"] = predict_drawing(
+                    temp_paths["Drawing"],
+                    drawing_task,
+                    drawing_shape.lower(),
+                    require_model("drawing"),
+                    feature_extractor
+                )
+            except Exception as exc:
+                errors["Drawing"] = str(exc)
+
+        if "ECG" in temp_paths:
+            try:
+                predictions["ECG"] = predict_ecg(
+                    temp_paths["ECG"],
+                    require_model("ecg"),
+                    feature_extractor
+                )
+            except Exception as exc:
+                errors["ECG"] = str(exc)
+
+        if "MRI" in temp_paths:
+            try:
+                predictions["MRI"] = predict_mri(
+                    temp_paths["MRI"],
+                    require_model("mri")
+                )
+            except Exception as exc:
+                errors["MRI"] = str(exc)
+
+        result = run_fusion_vote(predictions)
+        result["errors"] = errors
+        result["same_patient_confirmed"] = True
+        return result
+
+    finally:
+        for path in temp_paths.values():
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+        for upload, _ in supplied.values():
+            await upload.close()
 
 
 @app.post("/assistant/chat")

@@ -1,0 +1,20 @@
+{
+  "project": "Parkinson's disease research prototype",
+  "modalities": [
+    "Audio",
+    "Drawing",
+    "ECG",
+    "MRI"
+  ],
+  "fusion": false,
+  "class_mapping": {
+    "0": "Healthy",
+    "1": "Parkinson's"
+  },
+  "shared_feature_extractor": "shared/mobilenetv2_imagenet_feature_extractor.keras",
+  "limitations": [
+    "No verified common patient IDs across modalities.",
+    "ECG similarity groups are not verified patient IDs; shortcut audit must be reviewed.",
+    "MRI subject IDs are unverified; MRI protocol subset is recorded per model."
+  ]
+}

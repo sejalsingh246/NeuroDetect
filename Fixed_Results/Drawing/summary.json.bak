@@ -1,0 +1,43 @@
+{
+  "feature_set": "CNN embedding",
+  "best_model": "LogReg",
+  "table": {
+    "acc": {
+      "LogReg": "0.759 \u00b1 0.035",
+      "SVM-RBF": "0.733 \u00b1 0.049",
+      "ExtraTrees": "0.725 \u00b1 0.036",
+      "RandForest": "0.714 \u00b1 0.035"
+    },
+    "bal_acc": {
+      "LogReg": "0.759 \u00b1 0.035",
+      "SVM-RBF": "0.733 \u00b1 0.049",
+      "ExtraTrees": "0.725 \u00b1 0.036",
+      "RandForest": "0.714 \u00b1 0.035"
+    },
+    "f1": {
+      "LogReg": "0.748 \u00b1 0.039",
+      "SVM-RBF": "0.714 \u00b1 0.050",
+      "ExtraTrees": "0.693 \u00b1 0.040",
+      "RandForest": "0.692 \u00b1 0.027"
+    },
+    "auc": {
+      "LogReg": "0.827 \u00b1 0.044",
+      "SVM-RBF": "0.823 \u00b1 0.041",
+      "ExtraTrees": "0.803 \u00b1 0.040",
+      "RandForest": "0.792 \u00b1 0.024"
+    }
+  },
+  "participant_level": {
+    "acc": 0.7678571428571429,
+    "bal_acc": 0.773076923076923,
+    "f1": 0.7636363636363637,
+    "auc": 0.8794871794871795,
+    "n_subjects": 56
+  },
+  "inference_feature_count": 1282,
+  "class_mapping": {
+    "0": "Healthy",
+    "1": "Parkinson's"
+  },
+  "inference_ready_schema": true
+}

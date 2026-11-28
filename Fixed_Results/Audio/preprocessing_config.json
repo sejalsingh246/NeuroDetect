@@ -1,0 +1,7 @@
+{
+  "sample_rate": 16000,
+  "trim_top_db": 30,
+  "normalisation": "peak",
+  "task_required": true,
+  "feature_count": 161
+}
