@@ -139,6 +139,26 @@ NeuroDetect/
 ├── .gitignore
 └── main.py
 ```
+## Multimodal Fusion
+
+NeuroDetect includes an experimental hard-voting fusion mechanism
+that combines predictions from multiple modalities:
+
+- Audio
+- Drawing
+- ECG
+- MRI
+
+The fusion mechanism:
+- Requires confirmation that uploaded samples belong to the same person.
+- Requires at least two successful modality predictions.
+- Uses majority voting based on predicted classes.
+- Excludes failed modality predictions.
+- Returns no consensus in case of a tie.
+
+Note: This is an experimental implementation and has not been
+clinically validated. The available datasets do not establish
+verified patient-level alignment across all modalities.
 
 ## Getting Started
 
