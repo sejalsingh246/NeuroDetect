@@ -1,4 +1,3 @@
-::: {align="center"}
 # NeuroDetect
 
 ### A Multimodal Parkinson's Disease Research Platform
@@ -348,6 +347,6 @@ report performance without sufficient experimental context.
 
 ------------------------------------------------------------------------
 
-::: {align="center"}
+::: 
 *NeuroDetect --- Multimodal Parkinson's Research Prototype*
 :::
